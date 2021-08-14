@@ -116,7 +116,7 @@ class TPUSpawnPlugin(DDPSpawnPlugin):
         self.create_mp_queue()
 
     def create_mp_queue(self):
-        self.start_method = "fork"
+        self.start_method = "spawn"
         smp = mp.get_context(self.start_method)
         self.mp_queue = smp.SimpleQueue()
 
