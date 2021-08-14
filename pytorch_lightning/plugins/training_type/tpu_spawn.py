@@ -105,7 +105,8 @@ class TPUSpawnPlugin(DDPSpawnPlugin):
 
     def connect(self, model: "pl.LightningModule") -> None:
         TPUSpawnPlugin._validate_patched_dataloaders(model)
-        self.wrapped_model = xmp.MpModelWrapper(LightningDistributedModule(model))
+        #self.wrapped_model = xmp.MpModelWrapper(LightningDistributedModule(model))
+        self.wrapped_model = LightningDistributedModule(model)
         return super().connect(model)
 
     def pre_dispatch(self):
@@ -116,7 +117,7 @@ class TPUSpawnPlugin(DDPSpawnPlugin):
         self.create_mp_queue()
 
     def create_mp_queue(self):
-        self.start_method = "fork"
+        self.start_method = "spawn"
         smp = mp.get_context(self.start_method)
         self.mp_queue = smp.SimpleQueue()
 
@@ -157,12 +158,10 @@ class TPUSpawnPlugin(DDPSpawnPlugin):
             trainer.progress_bar_callback.disable()
 
         self.model_to_device()
-        print('setup optimizer')
         trainer.accelerator.setup_optimizers(trainer)
         trainer.precision_plugin.connect(self._model, None, None)
 
         self.barrier("pre-run-stage")
-        print('run_stage')
 
         results = trainer.run_stage()
 
@@ -181,7 +180,6 @@ class TPUSpawnPlugin(DDPSpawnPlugin):
     @parameter_validation
     def model_to_device(self) -> None:
         self.model = self.wrapped_model.to(self.root_device)
-
     def barrier(self, name: Optional[str] = None) -> None:
         if self.is_distributed:
             rendezvous(name)
