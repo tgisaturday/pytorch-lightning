@@ -116,7 +116,7 @@ class TPUSpawnPlugin(DDPSpawnPlugin):
         self.create_mp_queue()
 
     def create_mp_queue(self):
-        self.start_method = "spawn"
+        self.start_method = "fork"
         smp = mp.get_context(self.start_method)
         self.mp_queue = smp.SimpleQueue()
 
@@ -157,10 +157,12 @@ class TPUSpawnPlugin(DDPSpawnPlugin):
             trainer.progress_bar_callback.disable()
 
         self.model_to_device()
+        print('setup optimizer')
         trainer.accelerator.setup_optimizers(trainer)
         trainer.precision_plugin.connect(self._model, None, None)
 
         self.barrier("pre-run-stage")
+        print('run_stage')
 
         results = trainer.run_stage()
 
