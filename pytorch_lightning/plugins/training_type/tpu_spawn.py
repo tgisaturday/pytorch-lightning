@@ -163,6 +163,9 @@ class TPUSpawnPlugin(DDPSpawnPlugin):
 
         self.barrier("pre-run-stage")
 
+        if self.local_rank == 0:
+            time.sleep(2)
+            
         results = trainer.run_stage()
 
         self.transfer_distrib_spawn_state_on_fit_end(results)
