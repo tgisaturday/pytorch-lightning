@@ -119,6 +119,8 @@ class TPUSpawnPlugin(DDPSpawnPlugin):
     def create_mp_queue(self):
         self.start_method = "forkserver"
         smp = mp.get_context(self.start_method)
+        mp.set_sharing_strategy('file_system')
+
         self.mp_queue = smp.SimpleQueue()
 
     @property
