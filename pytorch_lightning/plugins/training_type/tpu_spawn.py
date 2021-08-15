@@ -105,8 +105,8 @@ class TPUSpawnPlugin(DDPSpawnPlugin):
 
     def connect(self, model: "pl.LightningModule") -> None:
         TPUSpawnPlugin._validate_patched_dataloaders(model)
-        #self.wrapped_model = xmp.MpModelWrapper(LightningDistributedModule(model))
-        self.wrapped_model = LightningDistributedModule(model)
+        self.wrapped_model = xmp.MpModelWrapper(LightningDistributedModule(model))
+        #self.wrapped_model = LightningDistributedModule(model)
         return super().connect(model)
 
     def pre_dispatch(self):
@@ -117,7 +117,7 @@ class TPUSpawnPlugin(DDPSpawnPlugin):
         self.create_mp_queue()
 
     def create_mp_queue(self):
-        self.start_method = "spawn"
+        self.start_method = "forkserver"
         smp = mp.get_context(self.start_method)
         self.mp_queue = smp.SimpleQueue()
 
@@ -161,21 +161,19 @@ class TPUSpawnPlugin(DDPSpawnPlugin):
         trainer.accelerator.setup_optimizers(trainer)
         trainer.precision_plugin.connect(self._model, None, None)
 
-        #self.barrier("pre-run-stage")
+        self.barrier("pre-run-stage")
 
-        #if self.local_rank == 0:
-        #    time.sleep(2)
 
         results = trainer.run_stage()
 
         self.transfer_distrib_spawn_state_on_fit_end(results)
 
         # https://github.com/pytorch/xla/issues/1801#issuecomment-602799542
-        #self.barrier("end-process")
+        self.barrier("end-process")
 
         # https://github.com/pytorch/xla/issues/2190#issuecomment-641665358
-        #if self.local_rank == 0:
-        #    time.sleep(2)
+        if self.local_rank == 0:
+            time.sleep(2)
 
         # ensure that spawned processes go through teardown before joining
         trainer._call_teardown_hook()
