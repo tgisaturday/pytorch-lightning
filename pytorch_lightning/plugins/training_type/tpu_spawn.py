@@ -105,8 +105,8 @@ class TPUSpawnPlugin(DDPSpawnPlugin):
 
     def connect(self, model: "pl.LightningModule") -> None:
         TPUSpawnPlugin._validate_patched_dataloaders(model)
-        #self.wrapped_model = xmp.MpModelWrapper(LightningDistributedModule(model))
-        self.wrapped_model = LightningDistributedModule(model)
+        self.wrapped_model = xmp.MpModelWrapper(LightningDistributedModule(model))
+        #self.wrapped_model = LightningDistributedModule(model)
         return super().connect(model)
 
     def pre_dispatch(self):
@@ -162,7 +162,7 @@ class TPUSpawnPlugin(DDPSpawnPlugin):
         trainer.accelerator.setup_optimizers(trainer)
         trainer.precision_plugin.connect(self._model, None, None)
 
-        #self.barrier("pre-run-stage")
+        self.barrier("pre-run-stage")
 
 
         results = trainer.run_stage()
@@ -170,11 +170,11 @@ class TPUSpawnPlugin(DDPSpawnPlugin):
         self.transfer_distrib_spawn_state_on_fit_end(results)
 
         # https://github.com/pytorch/xla/issues/1801#issuecomment-602799542
-        #self.barrier("end-process")
+        self.barrier("end-process")
 
         # https://github.com/pytorch/xla/issues/2190#issuecomment-641665358
-        #if self.local_rank == 0:
-        #    time.sleep(2)
+        if self.local_rank == 0:
+            time.sleep(2)
 
         # ensure that spawned processes go through teardown before joining
         trainer._call_teardown_hook()
@@ -339,7 +339,7 @@ class TPUSpawnPlugin(DDPSpawnPlugin):
     def teardown(self) -> None:
         # TPU teardown
         os.environ.pop("PT_XLA_DEBUG", None)
-        #self.barrier("teardown")
+        self.barrier("teardown")
 
     @property
     def should_rank_save_checkpoint(self) -> bool:
