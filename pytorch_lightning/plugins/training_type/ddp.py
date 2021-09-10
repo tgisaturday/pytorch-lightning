@@ -495,19 +495,19 @@ class DDPPlugin(ParallelPlugin):
         torch.save(True, os.path.join(sync_dir, f"{self.global_rank}.pl"))
 
         # sleep for a short time
-        time.sleep(10)
+        time.sleep(3)
 
         # return if all processes wrote a file in the `sync_dir`.
         # todo (tchaton) Add support for non-shared file-system which will fail.
         if len(os.listdir(sync_dir)) == (self.world_size // self.num_nodes):
             return
-        '''
+
         for pid in self._pids:
             if pid != os.getpid():
                 os.kill(pid, signal.SIGKILL)
         shutil.rmtree(sync_dir)
         raise DeadlockDetectedException(f"DeadLock detected from rank: {self.global_rank} \n {trace}")
-        '''
+
 
     def teardown(self) -> None:
         if isinstance(self.model, DistributedDataParallel):
