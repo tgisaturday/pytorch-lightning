@@ -54,7 +54,9 @@ PyTorch Lightning Documentation
    common/loggers
    advanced/multi_gpu
    advanced/advanced_gpu
+   advanced/mixed_precision
    common/weights_loading
+   advanced/fault_tolerant_training
    advanced/checkpoint_io
    common/optimizers
    advanced/profiler
@@ -142,7 +144,7 @@ PyTorch Lightning Documentation
    generated/CODE_OF_CONDUCT.md
    generated/CONTRIBUTING.md
    generated/BECOMING_A_CORE_CONTRIBUTOR.md
-   governance.md
+   governance
    generated/CHANGELOG.md
 
 Indices and tables
