@@ -11,7 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Test logging in the evaluation loop."""
+"""
+Test logging in the evaluation loop
+"""
 import collections
 import itertools
 from unittest import mock
@@ -27,7 +29,9 @@ from tests.helpers import BoringModel, RandomDataset
 
 
 def test__validation_step__log(tmpdir):
-    """Tests that validation_step can log."""
+    """
+    Tests that validation_step can log
+    """
 
     class TestModel(BoringModel):
         def training_step(self, batch, batch_idx):
@@ -63,7 +67,9 @@ def test__validation_step__log(tmpdir):
 
 
 def test__validation_step__epoch_end__log(tmpdir):
-    """Tests that validation_epoch_end can log."""
+    """
+    Tests that validation_epoch_end can log
+    """
 
     class TestModel(BoringModel):
         def training_step(self, batch, batch_idx):
@@ -197,7 +203,9 @@ def test_eval_logging_auto_reduce(tmpdir):
 
 @pytest.mark.parametrize(["batches", "log_interval", "max_epochs"], [(1, 1, 1), (64, 32, 2)])
 def test_eval_epoch_only_logging(tmpdir, batches, log_interval, max_epochs):
-    """Tests that test_epoch_end can be used to log, and we return them in the results."""
+    """
+    Tests that test_epoch_end can be used to log, and we return them in the results.
+    """
 
     class TestModel(BoringModel):
         def test_epoch_end(self, outputs):
@@ -256,7 +264,9 @@ def test_multi_dataloaders_add_suffix_properly(tmpdir, suffix):
 
 
 def test_log_works_in_val_callback(tmpdir):
-    """Tests that log can be called within callback."""
+    """
+    Tests that log can be called within callback
+    """
 
     class TestCallback(callbacks.Callback):
 
@@ -359,7 +369,9 @@ def test_log_works_in_val_callback(tmpdir):
 
 
 def test_log_works_in_test_callback(tmpdir):
-    """Tests that log can be called within callback."""
+    """
+    Tests that log can be called within callback
+    """
 
     class TestCallback(callbacks.Callback):
 
@@ -488,7 +500,9 @@ def test_log_works_in_test_callback(tmpdir):
 
 @mock.patch("pytorch_lightning.loggers.TensorBoardLogger.log_metrics")
 def test_validation_step_log_with_tensorboard(mock_log_metrics, tmpdir):
-    """This tests make sure we properly log_metrics to loggers."""
+    """
+    This tests make sure we properly log_metrics to loggers
+    """
 
     class ExtendedModel(BoringModel):
 
@@ -576,29 +590,3 @@ def test_validation_step_log_with_tensorboard(mock_log_metrics, tmpdir):
         "test_loss",
     }
     assert set(results[0]) == {"test_loss"}
-
-
-def test_logging_dict_on_validation_step(tmpdir):
-    class TestModel(BoringModel):
-        def validation_step(self, batch, batch_idx):
-            loss = super().validation_step(batch, batch_idx)
-            loss = loss["x"]
-            metrics = {
-                "loss": loss,
-                "loss_1": loss,
-            }
-            self.log("val_metrics", metrics)
-
-        validation_epoch_end = None
-
-    model = TestModel()
-
-    trainer = Trainer(
-        default_root_dir=tmpdir,
-        limit_train_batches=2,
-        limit_val_batches=2,
-        max_epochs=2,
-        progress_bar_refresh_rate=1,
-    )
-
-    trainer.fit(model)

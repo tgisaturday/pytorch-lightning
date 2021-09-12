@@ -29,8 +29,9 @@ if _TPU_AVAILABLE:
 
 
 class XLAStatsMonitor(Callback):
-    """Automatically monitors and logs XLA stats during training stage. ``XLAStatsMonitor`` is a callback and in
-    order to use it you need to assign a logger in the ``Trainer``.
+    """
+    Automatically monitors and logs XLA stats during training stage. ``XLAStatsMonitor``
+    is a callback and in order to use it you need to assign a logger in the ``Trainer``.
 
     Args:
         verbose: Set to ``True`` to print average peak and free memory, and epoch time
@@ -46,6 +47,7 @@ class XLAStatsMonitor(Callback):
         >>> from pytorch_lightning.callbacks import XLAStatsMonitor
         >>> xla_stats = XLAStatsMonitor() # doctest: +SKIP
         >>> trainer = Trainer(callbacks=[xla_stats]) # doctest: +SKIP
+
     """
 
     def __init__(self, verbose: bool = True) -> None:

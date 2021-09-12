@@ -17,15 +17,17 @@ import os
 import shutil
 import subprocess
 import uuid
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 import torch
 from torch.nn import Module
 
-from pytorch_lightning.utilities.apply_func import apply_to_collection
+_RECURSIVE_DICT_WITH_TENSORS = Union[Dict[str, torch.Tensor], Dict[Any, Any]]
 
 
-def recursive_detach(in_dict: Any, to_cpu: bool = False) -> Any:
+def recursive_detach(
+    in_dict: _RECURSIVE_DICT_WITH_TENSORS, to_cpu: bool = False
+) -> Dict[str, Union[torch.Tensor, Dict[str, torch.Tensor], Any]]:
     """Detach all tensors in `in_dict`.
 
     May operate recursively if some of the values in `in_dict` are dictionaries
@@ -39,14 +41,16 @@ def recursive_detach(in_dict: Any, to_cpu: bool = False) -> Any:
     Return:
         out_dict: Dictionary with detached tensors
     """
-
-    def detach_and_move(t: torch.Tensor, to_cpu: bool) -> torch.Tensor:
-        t = t.detach()
-        if to_cpu:
-            t = t.cpu()
-        return t
-
-    return apply_to_collection(in_dict, torch.Tensor, detach_and_move, to_cpu=to_cpu)
+    out_dict = {}
+    for k, v in in_dict.items():
+        if isinstance(v, dict):
+            v = recursive_detach(v, to_cpu=to_cpu)
+        elif callable(getattr(v, "detach", None)):
+            v = v.detach()
+            if to_cpu:
+                v = v.cpu()
+        out_dict[k] = v
+    return out_dict
 
 
 def is_oom_error(exception: BaseException) -> bool:
@@ -95,7 +99,7 @@ def garbage_collection_cuda() -> None:
             raise
 
 
-def get_memory_profile(mode: str) -> Dict[str, float]:
+def get_memory_profile(mode: str) -> Union[Dict[str, float], Dict[int, float]]:
     """Get a profile of the current memory usage.
 
     Args:
@@ -124,7 +128,8 @@ def get_memory_profile(mode: str) -> Dict[str, float]:
 
 
 def get_gpu_memory_map() -> Dict[str, float]:
-    """Get the current gpu usage.
+    """
+    Get the current gpu usage.
 
     Return:
         A dictionary in which the keys are device ids as integers and
@@ -153,7 +158,8 @@ def get_gpu_memory_map() -> Dict[str, float]:
 
 
 def get_model_size_mb(model: Module) -> float:
-    """Calculates the size of a Module in megabytes by saving the model to a temporary file and reading its size.
+    """
+    Calculates the size of a Module in megabytes by saving the model to a temporary file and reading its size.
 
     The computation includes everything in the :meth:`~torch.nn.Module.state_dict`,
     i.e., by default the parameteters and buffers.

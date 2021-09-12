@@ -171,12 +171,9 @@ def _run_power_scaling(
 def _run_binsearch_scaling(
     trainer: "pl.Trainer", model: "pl.LightningModule", new_size: int, batch_arg_name: str, max_trials: int
 ) -> int:
-    """Batch scaling mode where the size is initially is doubled at each iteration until an OOM error is
-    encountered.
-
-    Hereafter, the batch size is further refined using a binary search
-    """
-    low = 1
+    """Batch scaling mode where the size is initially is doubled at each iteration
+    until an OOM error is encountered. Hereafter, the batch size is further
+    refined using a binary search"""
     high = None
     count = 0
     while True:

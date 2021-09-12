@@ -11,14 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List
-
 import torch
 
 from pytorch_lightning.utilities.exceptions import MisconfigurationException
 
 
-def pick_multiple_gpus(nb: int) -> List[int]:
+def pick_multiple_gpus(nb):
     """
     Raises:
         MisconfigurationException:
@@ -32,14 +30,14 @@ def pick_multiple_gpus(nb: int) -> List[int]:
 
     nb = torch.cuda.device_count() if nb == -1 else nb
 
-    picked: List[int] = []
+    picked = []
     for _ in range(nb):
         picked.append(pick_single_gpu(exclude_gpus=picked))
 
     return picked
 
 
-def pick_single_gpu(exclude_gpus: List[int]) -> int:
+def pick_single_gpu(exclude_gpus: list):
     """
     Raises:
         RuntimeError:

@@ -25,8 +25,10 @@ from pytorch_lightning.utilities.types import _METRIC_COLLECTION
 
 
 class DataParallelPlugin(ParallelPlugin):
-    """Implements data-parallel training in a single process, i.e., the model gets replicated to each device and
-    each gets a split of the data."""
+    """
+    Implements data-parallel training in a single process, i.e., the model gets replicated to each
+    device and each gets a split of the data.
+    """
 
     def __init__(
         self,
@@ -57,7 +59,8 @@ class DataParallelPlugin(ParallelPlugin):
         self._model = DataParallel(LightningParallelModule(self._model), self.parallel_devices)
 
     def reduce(self, collection: _METRIC_COLLECTION, *args, **kwargs) -> _METRIC_COLLECTION:
-        """Reduces a collection of tensors from all processes. It can be applied to just a single tensor.
+        """
+        Reduces a collection of tensors from all processes. It can be applied to just a single tensor.
 
         Args:
             collection: The collection of tensors to sync and reduce.
@@ -116,10 +119,3 @@ class DataParallelPlugin(ParallelPlugin):
         if not is_overridden("test_step_end", self.lightning_module):
             return self.reduce(output)
         return output
-
-    def teardown(self) -> None:
-        if self.on_gpu:
-            # GPU teardown
-            self.lightning_module.cpu()
-            # clean up memory
-            torch.cuda.empty_cache()

@@ -11,7 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Tests to ensure that the training loop works with a dict (1.0)"""
+"""
+Tests to ensure that the training loop works with a dict (1.0)
+"""
 
 import torch
 
@@ -21,7 +23,9 @@ from tests.helpers.deterministic_model import DeterministicModel
 
 
 def test__training_step__flow_dict(tmpdir):
-    """Tests that only training_step can be used."""
+    """
+    Tests that only training_step can be used
+    """
 
     class TestModel(DeterministicModel):
         def training_step(self, batch, batch_idx):
@@ -53,7 +57,9 @@ def test__training_step__flow_dict(tmpdir):
 
 
 def test__training_step__tr_step_end__flow_dict(tmpdir):
-    """Tests that only training_step can be used."""
+    """
+    Tests that only training_step can be used
+    """
 
     class TestModel(DeterministicModel):
         def training_step(self, batch, batch_idx):
@@ -92,7 +98,9 @@ def test__training_step__tr_step_end__flow_dict(tmpdir):
 
 
 def test__training_step__epoch_end__flow_dict(tmpdir):
-    """Tests that only training_step can be used."""
+    """
+    Tests that only training_step can be used
+    """
 
     class TestModel(DeterministicModel):
         def training_step(self, batch, batch_idx):
@@ -139,7 +147,9 @@ def test__training_step__epoch_end__flow_dict(tmpdir):
 
 
 def test__training_step__step_end__epoch_end__flow_dict(tmpdir):
-    """Tests that only training_step can be used."""
+    """
+    Tests that only training_step can be used
+    """
 
     class TestModel(DeterministicModel):
         def training_step(self, batch, batch_idx):

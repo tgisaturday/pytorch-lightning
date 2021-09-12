@@ -19,7 +19,9 @@ from tests.helpers.boring_model import BoringModel, RandomDataset
 
 
 def test_overfit_multiple_val_loaders(tmpdir):
-    """Tests that only training_step can be used."""
+    """
+    Tests that only training_step can be used
+    """
 
     class TestModel(BoringModel):
         def validation_step(self, batch, batch_idx, dataloader_idx):
@@ -46,7 +48,9 @@ def test_overfit_multiple_val_loaders(tmpdir):
 
 @pytest.mark.parametrize("overfit", [1, 2, 0.1, 0.25, 1.0])
 def test_overfit_basic(tmpdir, overfit):
-    """Tests that only training_step can be used."""
+    """
+    Tests that only training_step can be used
+    """
 
     model = BoringModel()
 

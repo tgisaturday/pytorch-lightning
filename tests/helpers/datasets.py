@@ -24,8 +24,9 @@ from torch.utils.data import Dataset
 
 
 class MNIST(Dataset):
-    """Customized `MNIST <http://yann.lecun.com/exdb/mnist/>`_ dataset for testing Pytorch Lightning without the
-    torchvision dependency.
+    """
+    Customized `MNIST <http://yann.lecun.com/exdb/mnist/>`_ dataset for testing Pytorch Lightning
+    without the torchvision dependency.
 
     Part of the code was copied from
     https://github.com/pytorch/vision/blob/build/v0.5.0/torchvision/datasets/mnist.py
@@ -133,7 +134,7 @@ class MNIST(Dataset):
 
 
 class TrialMNIST(MNIST):
-    """Constrained MNIST dataset.
+    """Constrained MNIST dataset
 
     Args:
         num_samples: number of examples per selected class/digit

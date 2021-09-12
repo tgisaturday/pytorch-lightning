@@ -23,7 +23,8 @@ BType = Union[torch.Tensor, str, Mapping[Any, "BType"], Iterable["BType"]]
 
 
 def extract_batch_size(batch: BType) -> int:
-    """Recursively unpack a batch to find a torch.Tensor.
+    """
+    Recursively unpack a batch to find a torch.Tensor.
 
     Returns:
         ``len(tensor)`` when found, or ``1`` when it hits an empty or non iterable.
@@ -47,8 +48,9 @@ def has_iterable_dataset(dataloader: DataLoader) -> bool:
 
 
 def has_len(dataloader: DataLoader) -> bool:
-    """Checks if a given Dataloader has ``__len__`` method implemented i.e. if it is a finite dataloader or
-    infinite dataloader.
+    """
+    Checks if a given Dataloader has ``__len__`` method implemented i.e. if
+    it is a finite dataloader or infinite dataloader.
 
     Raises:
         ValueError:
@@ -76,10 +78,7 @@ def has_len(dataloader: DataLoader) -> bool:
 
 
 def get_len(dataloader: DataLoader) -> Union[int, float]:
-    """Return the length of the given DataLoader.
-
-    If ``__len__`` method is not implemented, return float('inf').
-    """
+    """Return the length of the given DataLoader. If ``__len__`` method is not implemented, return float('inf')."""
 
     if has_len(dataloader):
         return len(dataloader)

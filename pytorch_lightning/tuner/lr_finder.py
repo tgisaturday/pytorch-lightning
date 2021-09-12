@@ -98,8 +98,10 @@ class _LRFinder:
         self._total_batch_idx = 0  # for debug purpose
 
     def _exchange_scheduler(self, configure_optimizers: Callable):
-        """Decorate configure_optimizers methods such that it returns the users originally specified optimizer
-        together with a new scheduler that that takes care of the learning rate search."""
+        """Decorate configure_optimizers methods such that it returns the users
+        originally specified optimizer together with a new scheduler that
+        that takes care of the learning rate search.
+        """
 
         @wraps(configure_optimizers)
         def func():
@@ -169,13 +171,14 @@ class _LRFinder:
         return fig
 
     def suggestion(self, skip_begin: int = 10, skip_end: int = 1):
-        """This will propose a suggestion for choice of initial learning rate as the point with the steepest
-        negative gradient.
+        """This will propose a suggestion for choice of initial learning rate
+        as the point with the steepest negative gradient.
 
         Returns:
             lr: suggested initial learning rate to use
             skip_begin: how many samples to skip in the beginning. Prevent too naive estimates
             skip_end: how many samples to skip in the end. Prevent too optimistic estimates
+
         """
         try:
             loss = np.array(self.results["loss"][skip_begin:-skip_end])
@@ -299,8 +302,9 @@ def __lr_finder_restore_params(trainer, model):
 
 
 class _LRCallback(Callback):
-    """Special callback used by the learning rate finder. This callbacks log the learning rate before each batch
-    and log the corresponding loss after each batch.
+    """Special callback used by the learning rate finder. This callbacks log
+    the learning rate before each batch and log the corresponding loss after
+    each batch.
 
     Args:
         num_training: number of iterations done by the learning rate finder
@@ -312,6 +316,7 @@ class _LRCallback(Callback):
         beta: smoothing value, the loss being logged is a running average of
             loss values logged until now. ``beta`` controls the forget rate i.e.
             if ``beta=0`` all past information is ignored.
+
     """
 
     def __init__(
@@ -332,7 +337,7 @@ class _LRCallback(Callback):
         self.progress_bar = None
 
     def on_batch_start(self, trainer, pl_module):
-        """Called before each training batch, logs the lr that will be used."""
+        """Called before each training batch, logs the lr that will be used"""
         if (trainer.fit_loop.batch_idx + 1) % trainer.accumulate_grad_batches != 0:
             return
 
@@ -342,7 +347,7 @@ class _LRCallback(Callback):
         self.lrs.append(trainer.lr_schedulers[0]["scheduler"].lr[0])
 
     def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
-        """Called when the training batch ends, logs the calculated loss."""
+        """Called when the training batch ends, logs the calculated loss"""
         if (trainer.fit_loop.batch_idx + 1) % trainer.accumulate_grad_batches != 0:
             return
 
@@ -371,7 +376,8 @@ class _LRCallback(Callback):
 
 
 class _LinearLR(_LRScheduler):
-    """Linearly increases the learning rate between two boundaries over a number of iterations.
+    """
+    Linearly increases the learning rate between two boundaries over a number of iterations.
 
     Args:
 
@@ -409,7 +415,8 @@ class _LinearLR(_LRScheduler):
 
 
 class _ExponentialLR(_LRScheduler):
-    """Exponentially increases the learning rate between two boundaries over a number of iterations.
+    """Exponentially increases the learning rate between two boundaries
+    over a number of iterations.
 
     Arguments:
 

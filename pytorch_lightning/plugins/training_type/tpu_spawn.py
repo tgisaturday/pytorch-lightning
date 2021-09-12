@@ -105,8 +105,8 @@ class TPUSpawnPlugin(DDPSpawnPlugin):
 
     def connect(self, model: "pl.LightningModule") -> None:
         TPUSpawnPlugin._validate_patched_dataloaders(model)
-        self.wrapped_model = xmp.MpModelWrapper(LightningDistributedModule(model))
-        #self.wrapped_model = LightningDistributedModule(model)
+        #self.wrapped_model = xmp.MpModelWrapper(LightningDistributedModule(model))
+        self.wrapped_model = LightningDistributedModule(model)
         return super().connect(model)
 
     def pre_dispatch(self):
@@ -162,19 +162,19 @@ class TPUSpawnPlugin(DDPSpawnPlugin):
         trainer.accelerator.setup_optimizers(trainer)
         trainer.precision_plugin.connect(self._model, None, None)
 
-        self.barrier("pre-run-stage")
+        #self.barrier("pre-run-stage")
 
 
         results = trainer.run_stage()
 
-        self.__transfer_distrib_spawn_state_on_fit_end(trainer, results)
+        self.transfer_distrib_spawn_state_on_fit_end(results)
 
         # https://github.com/pytorch/xla/issues/1801#issuecomment-602799542
-        self.barrier("end-process")
+        #self.barrier("end-process")
 
         # https://github.com/pytorch/xla/issues/2190#issuecomment-641665358
-        if self.local_rank == 0:
-            time.sleep(2)
+        #if self.local_rank == 0:
+        #    time.sleep(2)
 
         # ensure that spawned processes go through teardown before joining
         trainer._call_teardown_hook()
@@ -186,8 +186,8 @@ class TPUSpawnPlugin(DDPSpawnPlugin):
         if self.is_distributed:
             rendezvous(name)
 
-    def __transfer_distrib_spawn_state_on_fit_end(self, trainer: "pl.Trainer", results: Any) -> None:
-        checkpoint_callback = trainer.checkpoint_callback
+    def transfer_distrib_spawn_state_on_fit_end(self, results):
+        checkpoint_callback = self.lightning_module.trainer.checkpoint_callback
         best_model_path = checkpoint_callback.best_model_path if checkpoint_callback else None
 
         # requires to compute the state_dict on all processes in case Metrics are present
@@ -198,7 +198,11 @@ class TPUSpawnPlugin(DDPSpawnPlugin):
 
             # save the last weights
             last_path = None
-            if trainer.state.fn == TrainerFn.FITTING and best_model_path is not None and len(best_model_path) > 0:
+            if (
+                self.lightning_module.trainer.state.fn == TrainerFn.FITTING
+                and best_model_path is not None
+                and len(best_model_path) > 0
+            ):
                 last_path = re.sub(".ckpt", ".tmp_end.ckpt", best_model_path)
                 self.save(state_dict, last_path)
 
@@ -252,26 +256,27 @@ class TPUSpawnPlugin(DDPSpawnPlugin):
         if trainer.logger is not None:
             trainer.logger.finalize("success")
 
-    def get_mp_spawn_kwargs(self, trainer: "pl.Trainer") -> dict:
+    @property
+    def xmp_spawn_kwargs(self):
         return {
-            "args": (trainer, self.mp_queue),
+            "args": (self.lightning_module.trainer, self.mp_queue),
             "nprocs": len(self.parallel_devices),
             "start_method": self.start_method,
         }
 
-    def start_training(self, trainer: "pl.Trainer") -> None:
+    def start_training(self, trainer) -> None:
         # todo: precision pluging is call in accelerator setup and should be moved
         if "XLA_USE_BF16" in os.environ:
             del os.environ["XLA_USE_BF16"]
         self._close_logger(trainer)
-        xmp.spawn(self.new_process, **self.get_mp_spawn_kwargs(trainer))
+        xmp.spawn(self.new_process, **self.xmp_spawn_kwargs)
 
-    def start_evaluating(self, trainer: "pl.Trainer") -> None:
+    def start_evaluating(self, trainer) -> None:
         self._close_logger(trainer)
-        xmp.spawn(self.new_process, **self.get_mp_spawn_kwargs(trainer))
+        xmp.spawn(self.new_process, **self.xmp_spawn_kwargs)
 
-    def start_predicting(self, trainer: "pl.Trainer") -> None:
-        xmp.spawn(self.new_process, **self.get_mp_spawn_kwargs(trainer))
+    def start_predicting(self, trainer) -> None:
+        xmp.spawn(self.new_process, **self.xmp_spawn_kwargs)
 
     def training_step(self, *args, **kwargs):
         return self.model(*args, **kwargs)
@@ -334,7 +339,7 @@ class TPUSpawnPlugin(DDPSpawnPlugin):
     def teardown(self) -> None:
         # TPU teardown
         os.environ.pop("PT_XLA_DEBUG", None)
-        self.barrier("teardown")
+        #self.barrier("teardown")
 
     @property
     def should_rank_save_checkpoint(self) -> bool:

@@ -29,10 +29,9 @@ class TrainerOptimizersMixin(ABC):
 
     _lightning_optimizers: Optional[List[LightningOptimizer]]
 
-    def init_optimizers(self, model: Optional["pl.LightningModule"]) -> Tuple[List, List, List]:
-        pl_module = self.lightning_module or model
+    def init_optimizers(self, model: "pl.LightningModule") -> Tuple[List, List, List]:
         self._lightning_optimizers = None
-        optim_conf = self.call_hook("configure_optimizers", pl_module=pl_module)
+        optim_conf = model.configure_optimizers()
         if optim_conf is None:
             rank_zero_warn(
                 "`LightningModule.configure_optimizers` returned `None`, this fit will run with no optimizer",
@@ -96,7 +95,7 @@ class TrainerOptimizersMixin(ABC):
                 ' * A list of the previously described dict format, with an optional "frequency" key (int)'
             )
 
-        is_manual_optimization = not pl_module.automatic_optimization
+        is_manual_optimization = not model.automatic_optimization
         lr_schedulers = self.configure_schedulers(lr_schedulers, monitor, is_manual_optimization)
         _validate_scheduler_optimizer(optimizers, lr_schedulers)
 
@@ -116,7 +115,7 @@ class TrainerOptimizersMixin(ABC):
     def configure_schedulers(
         self, schedulers: list, monitor: Optional[str], is_manual_optimization: bool
     ) -> List[Dict[str, Any]]:
-        """Convert each scheduler into dict structure with relevant information."""
+        """Convert each scheduler into dict structure with relevant information"""
         lr_schedulers = []
         default_config = _get_default_scheduler_config()
         for scheduler in schedulers:
@@ -179,8 +178,9 @@ class TrainerOptimizersMixin(ABC):
 
 
 class _MockOptimizer(Optimizer):
-    """The `_MockOptimizer` will be used inplace of an optimizer in the event that `None` is returned from
-    `configure_optimizers`."""
+    """The `_MockOptimizer` will be used inplace of an optimizer in the event that `None`
+    is returned from `configure_optimizers`.
+    """
 
     def __init__(self):
         super().__init__([torch.zeros(1)], {})

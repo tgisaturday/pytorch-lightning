@@ -53,7 +53,8 @@ else:
 
 
 class MLFlowLogger(LightningLoggerBase):
-    """Log using `MLflow <https://mlflow.org>`_.
+    """
+    Log using `MLflow <https://mlflow.org>`_.
 
     Install it with pip:
 
@@ -170,22 +171,14 @@ class MLFlowLogger(LightningLoggerBase):
         return self._mlflow_client
 
     @property
-    def run_id(self) -> str:
-        """Create the experiment if it does not exist to get the run id.
-
-        Returns:
-            The run id.
-        """
+    def run_id(self):
+        # create the experiment if it does not exist to get the run id
         _ = self.experiment
         return self._run_id
 
     @property
-    def experiment_id(self) -> str:
-        """Create the experiment if it does not exist to get the experiment id.
-
-        Returns:
-            The experiment id.
-        """
+    def experiment_id(self):
+        # create the experiment if it does not exist to get the experiment id
         _ = self.experiment
         return self._experiment_id
 
@@ -234,7 +227,8 @@ class MLFlowLogger(LightningLoggerBase):
 
     @property
     def save_dir(self) -> Optional[str]:
-        """The root file directory in which MLflow experiments are saved.
+        """
+        The root file directory in which MLflow experiments are saved.
 
         Return:
             Local path to the root experiment directory if the tracking uri is local.
@@ -245,18 +239,8 @@ class MLFlowLogger(LightningLoggerBase):
 
     @property
     def name(self) -> str:
-        """Get the experiment id.
-
-        Returns:
-            The experiment id.
-        """
         return self.experiment_id
 
     @property
     def version(self) -> str:
-        """Get the run id.
-
-        Returns:
-            The run id.
-        """
         return self.run_id

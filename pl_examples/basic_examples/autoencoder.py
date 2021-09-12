@@ -11,9 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""MNIST autoencoder example.
+"""
+MNIST autoencoder example.
 
-To run: python autoencoder.py --trainer.max_epochs=50
+To run:
+python autoencoder.py --trainer.max_epochs=50
 """
 
 import torch
@@ -107,12 +109,9 @@ class MyDataModule(pl.LightningDataModule):
 
 
 def cli_main():
-    cli = LightningCLI(
-        LitAutoEncoder, MyDataModule, seed_everything_default=1234, save_config_overwrite=True, run=False
-    )
-    cli.trainer.fit(cli.model, datamodule=cli.datamodule)
-    cli.trainer.test(ckpt_path="best")
-    predictions = cli.trainer.predict(ckpt_path="best")
+    cli = LightningCLI(LitAutoEncoder, MyDataModule, seed_everything_default=1234, save_config_overwrite=True)
+    cli.trainer.test(cli.model, datamodule=cli.datamodule)
+    predictions = cli.trainer.predict(cli.model, datamodule=cli.datamodule)
     print(predictions[0])
 
 

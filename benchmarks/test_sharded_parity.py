@@ -25,7 +25,9 @@ from tests.helpers.runif import RunIf
 
 
 class SeedTrainLoaderModel(BoringModel):
-    """Overrides training loader to ensure we enforce the same seed for all DDP processes."""
+    """
+    Overrides training loader to ensure we enforce the same seed for all DDP processes.
+    """
 
     def train_dataloader(self):
         seed_everything(42)
@@ -85,7 +87,8 @@ class SeedTrainLoaderMultipleOptimizersModel(SeedTrainLoaderModel):
 
 
 def record_ddp_fit_model_stats(trainer, model, use_cuda):
-    """Helper to calculate wall clock time for fit + max allocated memory.
+    """
+    Helper to calculate wall clock time for fit + max allocated memory.
 
     Args:
         trainer: The trainer object.
@@ -120,8 +123,9 @@ def plugin_parity_test(
     precision: int = 32,
     max_percent_speed_diff: float = 0.1,
 ):
-    """Ensures that the trained model is identical to the standard DDP implementation. Also checks for speed/memory
-    regressions, we should expect always less memory but performance to fluctuate.
+    """
+    Ensures that the trained model is identical to the standard DDP implementation.
+    Also checks for speed/memory regressions, we should expect always less memory but performance to fluctuate.
 
     Args:
         model_cls: Model class to use for test.
@@ -130,6 +134,7 @@ def plugin_parity_test(
         precision: Whether to use AMP or normal FP32 training.
         max_percent_speed_diff: The maximum speed difference compared to normal DDP training.
         This is more a safety net for variability in CI which can vary in speed, not for benchmarking.
+
     """
 
     # Train normal DDP

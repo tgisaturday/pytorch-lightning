@@ -40,7 +40,8 @@ class WriteInterval(LightningEnum):
 
 
 class BasePredictionWriter(Callback):
-    """Base class to implement how the predictions should be stored.
+    """
+    Base class to implement how the predictions should be stored.
 
     Args:
         write_interval: When to write.

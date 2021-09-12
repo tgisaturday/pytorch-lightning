@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""General utilities."""
+"""General utilities"""
 import importlib
 import operator
 import os
@@ -25,7 +25,8 @@ from pkg_resources import DistributionNotFound
 
 
 def _module_available(module_path: str) -> bool:
-    """Check if a path is available in your environment.
+    """
+    Check if a path is available in your environment
 
     >>> _module_available('os')
     True
@@ -43,7 +44,8 @@ def _module_available(module_path: str) -> bool:
 
 
 def _compare_version(package: str, op, version) -> bool:
-    """Compare package version with some requirements.
+    """
+    Compare package version with some requirements
 
     >>> _compare_version("torch", operator.ge, "0.1")
     True
@@ -66,7 +68,6 @@ _TORCH_GREATER_EQUAL_1_7 = _compare_version("torch", operator.ge, "1.7.0")
 _TORCH_GREATER_EQUAL_1_8 = _compare_version("torch", operator.ge, "1.8.0")
 _TORCH_GREATER_EQUAL_1_8_1 = _compare_version("torch", operator.ge, "1.8.1")
 _TORCH_GREATER_EQUAL_1_9 = _compare_version("torch", operator.ge, "1.9.0")
-_TORCH_GREATER_EQUAL_1_10 = _compare_version("torch", operator.ge, "1.10.0")
 
 _APEX_AVAILABLE = _module_available("apex.amp")
 _BOLTS_AVAILABLE = _module_available("pl_bolts")
@@ -83,17 +84,7 @@ _KINETO_AVAILABLE = _TORCH_GREATER_EQUAL_1_8_1 and torch.profiler.kineto_availab
 _NATIVE_AMP_AVAILABLE = _module_available("torch.cuda.amp") and hasattr(torch.cuda.amp, "autocast")
 _OMEGACONF_AVAILABLE = _module_available("omegaconf")
 _POPTORCH_AVAILABLE = _module_available("poptorch")
-_RICH_AVAILABLE = _module_available("rich")
-_TORCH_CPU_AMP_AVAILABLE = _compare_version(
-    "torch", operator.ge, "1.10.dev20210902"
-)  # todo: swap to 1.10.0 once released
-_TORCH_BFLOAT_AVAILABLE = _compare_version(
-    "torch", operator.ge, "1.10.0.dev20210902"
-)  # todo: swap to 1.10.0 once released
 _TORCH_QUANTIZE_AVAILABLE = bool([eg for eg in torch.backends.quantized.supported_engines if eg != "none"])
-_TORCH_SHARDED_TENSOR_AVAILABLE = _compare_version(
-    "torch", operator.ge, "1.10.0.dev20210809"
-)  # todo: swap to 1.10.0 once released
 _TORCHTEXT_AVAILABLE = _module_available("torchtext")
 _TORCHVISION_AVAILABLE = _module_available("torchvision")
 _TORCHMETRICS_LOWER_THAN_0_3 = _compare_version("torchmetrics", operator.lt, "0.3.0")
@@ -112,6 +103,9 @@ else:
     _IPU_AVAILABLE = False
 
 
-# experimental feature within PyTorch Lightning.
-def _fault_tolerant_training() -> bool:
+def _fault_tolerant_enabled() -> bool:
+    """
+    EXPERIMENTAL
+    the `reset` function from `_MultiProcessingDataLoaderIter` was introduced in PyTorch 1.7 but we need to mock it.
+    """
     return _TORCH_GREATER_EQUAL_1_7 and int(os.getenv("PL_FAULT_TOLERANT_TRAINING", 0))

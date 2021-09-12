@@ -73,7 +73,6 @@ from pytorch_lightning.utilities import (
     rank_zero_info,
     rank_zero_warn,
 )
-from pytorch_lightning.utilities.enums import PrecisionType
 from pytorch_lightning.utilities.exceptions import MisconfigurationException
 
 if _HOROVOD_AVAILABLE:
@@ -149,7 +148,6 @@ class AcceleratorConnector:
         self.plugins = plugins
 
         self._validate_accelerator_and_devices()
-
         self._warn_if_devices_flag_ignored()
 
         self.select_accelerator_type()
@@ -562,11 +560,15 @@ class AcceleratorConnector:
             return PrecisionPlugin()
         if self.precision == 64:
             return DoublePrecisionPlugin()
-        if self.precision in (16, "bf16"):
+        if self.precision == 16:
             if self.use_tpu:
                 return TPUHalfPrecisionPlugin()
 
             if self.amp_type == AMPType.NATIVE:
+                if self.use_cpu:
+                    raise MisconfigurationException(
+                        "You have asked for native AMP on CPU, but AMP is only available on GPU."
+                    )
                 if not _NATIVE_AMP_AVAILABLE:
                     msg = (
                         "You have asked for native AMP but your PyTorch version does not support it."
@@ -579,12 +581,12 @@ class AcceleratorConnector:
                     else:
                         raise MisconfigurationException(msg)
                 else:
-                    log.info(f"Using native {self.precision} bit Automatic Mixed Precision")
+                    log.info("Using native 16bit precision.")
                     if self._is_sharded_training_type:
-                        return ShardedNativeMixedPrecisionPlugin(self.precision, use_cpu=self.use_cpu)
+                        return ShardedNativeMixedPrecisionPlugin()
                     if self._is_fully_sharded_training_type:
-                        return FullyShardedNativeMixedPrecisionPlugin(self.precision, use_cpu=self.use_cpu)
-                    return NativeMixedPrecisionPlugin(self.precision, use_cpu=self.use_cpu)
+                        return FullyShardedNativeMixedPrecisionPlugin()
+                    return NativeMixedPrecisionPlugin()
 
             if self.amp_type == AMPType.APEX:
                 if not _APEX_AVAILABLE:
@@ -599,9 +601,7 @@ class AcceleratorConnector:
                 log.info("Using APEX 16bit precision.")
                 return ApexMixedPrecisionPlugin(self.amp_level)
 
-        raise MisconfigurationException(
-            f"Precision {self.precision} is invalid. Allowed precision values: {PrecisionType.supported_types()}"
-        )
+        raise NotImplementedError("We only support precisions 64, 32 and 16!")
 
     def select_training_type_plugin(self) -> TrainingTypePlugin:
         if (
@@ -843,8 +843,10 @@ class AcceleratorConnector:
             self.num_processes = hvd.local_size()
 
     def check_interactive_compatibility(self):
-        """Raises a `MisconfigurationException` if the accelerator and/or plugin is not compatible with an
-        interactive environment."""
+        """
+        Raises a `MisconfigurationException` if the accelerator and/or plugin
+        is not compatible with an interactive environment
+        """
         from pytorch_lightning.utilities import _IS_INTERACTIVE
 
         if _IS_INTERACTIVE and self._distrib_type is not None and not self._distrib_type.is_interactive_compatible():

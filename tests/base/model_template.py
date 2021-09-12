@@ -46,7 +46,8 @@ class EvalModelTemplate(
     ConfigureOptimizersPool,
     LightningModule,
 ):
-    """This template houses all  combinations of model  configurations  we want to test.
+    """
+    This template houses all  combinations of model  configurations  we want to test
 
     >>> model = EvalModelTemplate()
     """
